@@ -1,4 +1,4 @@
-# claude
+# claude och AI-historia
 
 En samling artiklar om AI-forskning och Anthropic.
 
