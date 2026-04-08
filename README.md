@@ -8,6 +8,7 @@ En samling artiklar om AI-forskning och Anthropic.
 |---|-------|-------------|
 | 1 | [Nio år som förändrade allt: AI-forskningens viktigaste milstolpar 2017–2026](1.md) | En kronologisk översikt över de papers och genombrott som formade moderna AI-system, från Transformer-arkitekturen 2017 till autonoma AI-agenter 2026. |
 | 2 | [Anthropics fem pelare: från konstitutionella regler till mekanistisk förståelse](2.md) | En analys av Anthropics forskningsprogram — Constitutional AI, Scaling Monosemanticity, Circuit Tracing, MCP och samarbete kring alignment-utvärdering. |
+| 3 | [Hur man tänker med Claude: lager, protokoll och praktisk arkitektur](3.md) | En teknisk genomgång av hur moderna AI-system som Claude är uppbyggda — systemlager, kontextfönster, skills, MCP-agenter och minneshantering utan persistent minne. |
 
 ## Licens
 
