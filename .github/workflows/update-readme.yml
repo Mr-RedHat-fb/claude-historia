@@ -1,0 +1,107 @@
+name: Update README index
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '*.md'
+      - '!README.md'
+
+jobs:
+  update-readme:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Rebuild README index table
+        shell: python3 {0}
+        run: |
+          import re, glob, sys
+
+          def extract_info(path):
+              with open(path, encoding='utf-8') as f:
+                  lines = f.readlines()
+              title = ''
+              title_idx = -1
+              for i, line in enumerate(lines):
+                  if line.startswith('# '):
+                      title = line[2:].strip()
+                      title_idx = i
+                      break
+              para_lines = []
+              found = False
+              for line in lines[title_idx + 1:]:
+                  s = line.strip()
+                  if s == '---':
+                      break
+                  if s == '':
+                      if found:
+                          break
+                  elif not s.startswith('#'):
+                      para_lines.append(s)
+                      found = True
+              desc = ' '.join(para_lines)
+              desc = re.sub(r'\*\*(.*?)\*\*', r'\1', desc)
+              desc = re.sub(r'\*(.*?)\*', r'\1', desc)
+              desc = re.sub(r'\[(.*?)\]\(.*?\)', r'\1', desc)
+              m = re.match(r'^(.*?[.!?])(?:\s|\Z)', desc)
+              if m:
+                  desc = m.group(1)
+              elif len(desc) > 250:
+                  desc = desc[:250].rsplit(' ', 1)[0] + '...'
+              return title, desc
+
+          files = sorted(
+              [f for f in glob.glob('[0-9]*.md')],
+              key=lambda x: int(re.match(r'^(\d+)', x).group(1))
+          )
+
+          rows = ['| # | Titel | Beskrivning |', '|---|-------|-------------|']
+          for f in files:
+              n = int(re.match(r'^(\d+)', f).group(1))
+              title, desc = extract_info(f)
+              rows.append(f'| {n} | [{title}]({f}) | {desc} |')
+
+          with open('README.md', encoding='utf-8') as f:
+              content = f.read()
+
+          lines = content.split('\n')
+          out = []
+          i = 0
+          while i < len(lines):
+              if lines[i] == '## Index':
+                  out.append(lines[i])
+                  i += 1
+                  if i < len(lines) and lines[i] == '':
+                      out.append(lines[i])
+                      i += 1
+                  while i < len(lines) and lines[i].startswith('|'):
+                      i += 1
+                  out.extend(rows)
+              else:
+                  out.append(lines[i])
+                  i += 1
+
+          new_content = '\n'.join(out)
+          if new_content == content:
+              print('README.md already up to date')
+              sys.exit(0)
+          with open('README.md', 'w', encoding='utf-8') as f:
+              f.write(new_content)
+          print('README.md updated')
+
+      - name: Commit and push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add README.md
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "docs: auto-update README index"
+            git push
+          fi
